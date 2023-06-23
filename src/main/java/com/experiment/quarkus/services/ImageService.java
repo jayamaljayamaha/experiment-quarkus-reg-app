@@ -9,10 +9,10 @@ import com.experiment.quarkus.dto.ImageResponse;
 import com.experiment.quarkus.entity.Image;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
-import jakarta.persistence.EntityManager;
 import jakarta.transaction.Transactional;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Validator;
+import org.hibernate.SessionFactory;
 
 import java.util.Set;
 
@@ -20,7 +20,7 @@ import java.util.Set;
 public class ImageService {
 
     @Inject
-    EntityManager entityManager;
+    SessionFactory sessionFactory;
 
     @Inject
     Validator validator;
@@ -32,8 +32,7 @@ public class ImageService {
                 .filter(imageData -> this.validateImageData(imageData, response, imageRequest.getImages().indexOf(imageData)))
                 .map(this::createImageEntity)
                 .forEach(image -> {
-                    entityManager.persist(image);
-                    entityManager.flush();
+                    sessionFactory.inTransaction(session -> session.persist(image));
                     response.getImages().add(ReturnImage.builder()
                             .id(image.getId())
                             .url(image.getUrl())
